@@ -1,15 +1,28 @@
-const { SlashCommandBuilder } = require('@discordjs/builders')
-const { Interaction } = require('discord.js')
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageEmbed } = require('discord.js');
+
 module.exports = {
-    category: 'Utility',
     data: new SlashCommandBuilder()
         .setName('ping')
-        .setDescription('See if the bot is alive.'),
-    /**
-     *
-     * @param {Interaction} interaction
-     */
+        .setDescription('Check my round trip and Discord websocket latency.'),
+    category: 'Utility',
     async execute(interaction) {
-        return interaction.reply('Pong!')
+        const { client } = interaction;
+
+        try {
+            await interaction.reply({ content: 'Pinging...' });
+            
+            const embed = new MessageEmbed()
+                .addFields(
+                    { name: 'Discord WebSocket', value: `${client.ws.ping.toLocalString()}ms` },
+                    { name: 'Round Trip', value: `${(Date.now() - interaction.createdTimestamp).toLocaleString()}ms` },
+                )
+                .setFooter({ text: client.user.tag, iconURL: client.user.displayAvatarURL({ dynamic: true }) ?? interaction.user.displayAvatarURL({ dynamic: true }) })
+                .setTimestamp();
+            
+            await interaction.editReply({ content: '🏓 Pong!', embeds: [embed] });
+        } catch (error) {
+            console.error(error);
+        }
     },
-}
+};
